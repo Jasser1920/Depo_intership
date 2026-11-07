@@ -37,7 +37,14 @@ function writeJson(file: string, value: unknown) {
 
 export function getSettings(): Settings {
   const saved = readJson<Partial<Settings>>(SETTINGS_FILE, {});
-  return { ...DEFAULT_SETTINGS, ...saved, search: { ...DEFAULT_SETTINGS.search, ...saved.search } };
+  const settings = { ...DEFAULT_SETTINGS, ...saved, search: { ...DEFAULT_SETTINGS.search, ...saved.search } };
+  // If the chosen default AI has no key but the other one does, use the one that works.
+  const hasKey = { claude: Boolean(process.env.ANTHROPIC_API_KEY), gemini: Boolean(process.env.GEMINI_API_KEY) };
+  if (!hasKey[settings.defaultProvider]) {
+    const other = settings.defaultProvider === "claude" ? "gemini" : "claude";
+    if (hasKey[other]) settings.defaultProvider = other;
+  }
+  return settings;
 }
 
 export function saveSettings(patch: Partial<Settings>): Settings {
