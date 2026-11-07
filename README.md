@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎯 Internship Hunter
 
-## Getting Started
+A personal app for my final-year internship (PFE) search in **Portugal, Switzerland and Denmark**. It:
 
-First, run the development server:
+1. Takes a job posting (paste the text or import from a link) or a company for a spontaneous application.
+2. Uses **Claude or Gemini** (switchable for each letter) to score the match against my CV, flag visa problems for a non-EU candidate, and write:
+   - a cover letter that follows my 4-paragraph rules and my sample style (180–220 words)
+   - 5 subject lines (one per angle)
+   - a LinkedIn DM (50–80 words) and a connection note (under 300 characters)
+3. **Checks the draft against my rules** (word counts, banned words, passive openings, subject length) and has the AI revise it once if a rule is broken. Live checks keep running while I edit.
+4. Lets me **review and edit everything**, then **send from Gmail** with my CV and a generated cover letter PDF attached. Nothing is sent without an explicit confirm.
+5. Tracks every application (Draft → Applied → Replied → Interview → Offer / Rejected) and drafts **follow-ups** that are sent as replies in the same Gmail thread.
+
+## Stack
+
+Next.js 15 (App Router) · TypeScript · Tailwind v4 · Anthropic SDK (`claude-opus-5-5`) · Google GenAI SDK (Gemini) · Nodemailer (Gmail SMTP) · pdf-lib · JSON-file storage in `data/` (local, gitignored).
+
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local   # then fill it in
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### `.env.local`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variable | What |
+|---|---|
+| `ANTHROPIC_API_KEY` | From console.anthropic.com (optional if you use Gemini) |
+| `CLAUDE_MODEL` | Defaults to `claude-opus-5-5` |
+| `GEMINI_API_KEY` | From aistudio.google.com (optional if you use Claude) |
+| `GEMINI_MODEL` | Defaults to `gemini-2.5-flash` |
+| `GMAIL_USER` | Your Gmail address |
+| `GMAIL_APP_PASSWORD` | A 16-character **App Password**, not your normal password: Google Account → Security → turn on 2-Step Verification → App passwords |
+| `SENDER_NAME` | Name shown in the From field |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Then open **Settings** to:
 
-## Learn More
+- upload your CV (PDF)
+- click **Test Gmail connection**
+- adjust your profile facts, writing rules, samples and signature
 
-To learn more about Next.js, take a look at the following resources:
+## How the letter writing works
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Profile** (Settings) holds the only facts the AI may use. It's told never to invent employers, metrics or dates.
+- **Rules** and **samples** go into the system prompt as-is. Edit them and the next letter follows the new version.
+- Country notes (Denmark is direct, Switzerland is formal, Portugal is warm) are in `src/lib/defaults.ts`.
+- Rule checks live in `src/lib/checks.ts`, including the banned-phrase list.
+- Claude requests turn on server-side refusal fallbacks (`fallbacks: "default"`), so a declined request is retried on a recommended fallback model.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Data & privacy
 
-## Deploy on Vercel
+Everything stays on your machine:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `data/applications.json`: your applications
+- `data/settings.json`: your edited settings
+- `data/cv.pdf`: your CV
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`data/` and `.env.local` are gitignored. Gmail keeps a copy of every sent email in your Sent folder.
+
+## Roadmap
+
+- [ ] **v2:** daily search across Landing.jobs, TheHub.io, SwissDevJobs, plus Greenhouse/Lever company watchlists, with a morning digest
+- [ ] Filter out offers that require EU work authorization, and push up companies that sponsor visas
+- [ ] Find contacts for spontaneous applications (reuse the Hunter.io code from Job Outreach Suite)
+- [ ] Read replies over Gmail IMAP and update statuses automatically
