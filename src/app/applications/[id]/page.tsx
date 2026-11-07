@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { ContactFinder } from "@/components/ContactFinder";
 import { ErrorBox, Issues, ScoreBadge, VisaBadge } from "@/components/ui";
 import { checkDraft, countWords, LETTER_MAX, LETTER_MIN } from "@/lib/checks";
 import { api, daysSince, flag } from "@/lib/client";
@@ -46,6 +47,7 @@ export default function Review() {
   const [feedback, setFeedback] = useState("");
   const [followUp, setFollowUp] = useState<{ subject: string; body: string } | null>(null);
   const [confirmFollowUp, setConfirmFollowUp] = useState(false);
+  const [domainHint, setDomainHint] = useState("");
 
   useEffect(() => {
     api<Application>(`/api/applications/${id}`)
@@ -53,6 +55,13 @@ export default function Review() {
       .catch((e) => setError(e.message));
     api<{ settings: Settings; env: EnvStatus }>("/api/settings").then((d) => { setSettings(d.settings); setEnv(d.env); });
   }, [id]);
+
+  useEffect(() => {
+    if (!app || !settings) return;
+    const fromWatchlist = settings.watchlist.find((w) => w.name.toLowerCase() === app.company.toLowerCase())?.domain;
+    const fromEmail = app.toEmail.split("@")[1];
+    setDomainHint(fromWatchlist || (fromEmail && !/gmail|outlook|hotmail|yahoo/.test(fromEmail) ? fromEmail : ""));
+  }, [app, settings]);
 
   const dirty = useMemo(() => app && draft && JSON.stringify(toDraft(app)) !== JSON.stringify(draft), [app, draft]);
   const liveIssues = useMemo(() => (draft ? checkDraft({ ...draft }) : []), [draft]);
@@ -137,6 +146,22 @@ export default function Review() {
 
       {notice && <div className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800">{notice}</div>}
       <ErrorBox message={error} />
+      {app.bounced && (
+        <ErrorBox message={`The email to ${app.toEmail} bounced — the address probably doesn't exist. Find another contact below and send again.`} />
+      )}
+
+      {(app.replies ?? []).length > 0 && (
+        <div className="card space-y-2">
+          <div className="text-sm font-semibold">📬 Inbox</div>
+          {(app.replies ?? []).map((r) => (
+            <div key={r.id} className={`rounded-md border px-3 py-2 text-sm ${r.kind === "bounce" ? "border-red-200 bg-red-50" : "border-green-200 bg-green-50"}`}>
+              <div className="font-medium">{r.kind === "bounce" ? "Bounce" : "Reply"} · {r.from} · <span className="font-normal text-muted">{new Date(r.at).toLocaleString()}</span></div>
+              <div className="text-xs text-muted">{r.subject}</div>
+              {r.snippet && <p className="mt-1">{r.snippet}</p>}
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="grid gap-5 lg:grid-cols-[320px_1fr]">
         {/* Left: analysis */}
@@ -208,6 +233,15 @@ export default function Review() {
                 <input id="cc" className="field" value={draft.cc} onChange={(e) => set("cc", e.target.value)} />
               </div>
             </div>
+            <ContactFinder
+              key={domainHint}
+              defaultDomain={domainHint}
+              onPick={(email, name) => {
+                const first = name.split(" ")[0];
+                setDraft({ ...draft, toEmail: email, contactName: name || draft.contactName, greeting: name ? `Dear ${name},` : draft.greeting });
+                setNotice(first ? `Using ${email}. Greeting updated to "Dear ${name}," — consider regenerating so the letter addresses them.` : `Using ${email}.`);
+              }}
+            />
 
             <div>
               <div className="label">Subject — pick an angle or edit</div>

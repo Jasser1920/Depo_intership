@@ -1,4 +1,4 @@
-import type { Settings } from "./types";
+import type { SearchSettings, Settings, WatchCompany } from "./types";
 
 // Ground-truth facts the AI is allowed to use. Edit them in Settings.
 export const DEFAULT_PROFILE = `Name: Jasser Nahali
@@ -116,6 +116,62 @@ Software Engineer | ESPRIT
 +216 29 523 985 | Jasser.Nahali@esprit.tn
 linkedin.com/in/jasser-nahali-78a94a263 | github.com/Jasser1920`;
 
+// Every board below was verified live against its ATS API (Nov 2026).
+// Global companies are included because they hire interns in Lisbon / Zurich / Copenhagen offices;
+// the location filter keeps only roles in your target countries.
+export const DEFAULT_WATCHLIST: WatchCompany[] = [
+  // Denmark
+  { name: "Pleo", ats: "ashby", token: "pleo", country: "Denmark", domain: "pleo.io" },
+  { name: "Lunar", ats: "ashby", token: "lunar", country: "Denmark", domain: "lunar.app" },
+  { name: "Corti", ats: "ashby", token: "corti", country: "Denmark", domain: "corti.ai" },
+  { name: "Pandektes", ats: "ashby", token: "pandektes", country: "Denmark", domain: "pandektes.com" },
+  { name: "Too Good To Go", ats: "ashby", token: "toogoodtogo", country: "Denmark", domain: "toogoodtogo.com" },
+  { name: "Trustpilot", ats: "greenhouse", token: "trustpilot", country: "Denmark", domain: "trustpilot.com" },
+  // Portugal
+  { name: "Farfetch", ats: "ashby", token: "farfetch", country: "Portugal", domain: "farfetch.com" },
+  { name: "Feedzai", ats: "greenhouse", token: "feedzai", country: "Portugal", domain: "feedzai.com" },
+  { name: "Sword Health", ats: "greenhouse", token: "swordhealth", country: "Portugal", domain: "swordhealth.com" },
+  { name: "Sensei", ats: "greenhouse", token: "sensei", country: "Portugal", domain: "sensei.tech" },
+  { name: "Jscrambler", ats: "smartrecruiters", token: "jscrambler", country: "Portugal", domain: "jscrambler.com" },
+  { name: "Cloudflare", ats: "greenhouse", token: "cloudflare", country: "Portugal", domain: "cloudflare.com" },
+  { name: "Datadog", ats: "greenhouse", token: "datadog", country: "Portugal", domain: "datadoghq.com" },
+  { name: "Bitpanda", ats: "greenhouse", token: "bitpanda", country: "", domain: "bitpanda.com" },
+  // Switzerland
+  { name: "Proton", ats: "greenhouse", token: "proton", country: "Switzerland", domain: "proton.me" },
+  { name: "Scandit", ats: "greenhouse", token: "scandit", country: "Switzerland", domain: "scandit.com" },
+  { name: "On", ats: "greenhouse", token: "onrunning", country: "Switzerland", domain: "on.com" },
+  { name: "Ledgy", ats: "greenhouse", token: "ledgy", country: "Switzerland", domain: "ledgy.com" },
+  { name: "Frontify", ats: "ashby", token: "frontify", country: "Switzerland", domain: "frontify.com" },
+  { name: "ANYbotics", ats: "lever", token: "anybotics", country: "Switzerland", domain: "anybotics.com" },
+  { name: "Sonar", ats: "lever", token: "sonarsource", country: "Switzerland", domain: "sonarsource.com" },
+  { name: "Nexthink", ats: "smartrecruiters", token: "nexthink", country: "Switzerland", domain: "nexthink.com" },
+  { name: "Sportradar", ats: "smartrecruiters", token: "sportradar", country: "Switzerland", domain: "sportradar.com" },
+  // Global with European offices
+  { name: "Elastic", ats: "greenhouse", token: "elastic", country: "", domain: "elastic.co" },
+  { name: "GitLab", ats: "greenhouse", token: "gitlab", country: "", domain: "gitlab.com" },
+  { name: "MongoDB", ats: "greenhouse", token: "mongodb", country: "", domain: "mongodb.com" },
+  { name: "Celonis", ats: "greenhouse", token: "celonis", country: "", domain: "celonis.com" },
+  { name: "Miro", ats: "ashby", token: "miro", country: "", domain: "miro.com" },
+  { name: "n8n", ats: "ashby", token: "n8n", country: "", domain: "n8n.io" },
+];
+
+export const DEFAULT_SEARCH: SearchSettings = {
+  countries: ["Portugal", "Switzerland", "Denmark"],
+  includeRemote: true,
+  includeJunior: false,
+  useArbeitnow: true,
+  useRemoteOk: true,
+  useJooble: true,
+  useAdzuna: true,
+  keywords: "software engineer intern",
+  aiScoreLimit: 20,
+  autoDaily: true,
+  dailyHour: 8,
+  digestEmail: true,
+  digestMinScore: 60,
+  autoInboxSync: true,
+};
+
 export const DEFAULT_SETTINGS: Settings = {
   defaultProvider: "claude",
   followUpDays: 7,
@@ -123,6 +179,8 @@ export const DEFAULT_SETTINGS: Settings = {
   rules: DEFAULT_RULES,
   samples: DEFAULT_SAMPLES,
   signature: DEFAULT_SIGNATURE,
+  watchlist: DEFAULT_WATCHLIST,
+  search: DEFAULT_SEARCH,
 };
 
 export const COUNTRY_NOTES = `- Denmark: flat hierarchy; keep it direct, concise and informal-professional. Emphasize ownership, collaboration and pragmatic engineering. No flattery.

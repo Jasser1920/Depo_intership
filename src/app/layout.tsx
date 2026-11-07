@@ -12,10 +12,13 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en">
       <body className="min-h-screen antialiased">
         <header className="border-b border-line bg-white">
-          <nav className="mx-auto flex max-w-6xl items-center gap-6 px-4 py-3 text-sm">
+          <nav className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3 text-sm">
             <Link href="/" className="font-semibold">🎯 Internship Hunter</Link>
             <Link href="/" className="text-muted hover:text-ink">Tracker</Link>
+            <Link href="/jobs" className="text-muted hover:text-ink">Opportunities</Link>
+            <Link href="/companies" className="text-muted hover:text-ink">Companies</Link>
             <Link href="/new" className="text-muted hover:text-ink">New application</Link>
+            <Link href="/analytics" className="text-muted hover:text-ink">Analytics</Link>
             <Link href="/settings" className="ml-auto text-muted hover:text-ink">Settings</Link>
           </nav>
         </header>

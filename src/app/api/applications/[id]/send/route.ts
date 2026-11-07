@@ -34,7 +34,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return ok(
       updateApplication(
         id,
-        { status: app.status === "draft" ? "applied" : app.status, sentAt: now, messageId },
+        {
+          status: app.status === "draft" ? "applied" : app.status,
+          sentAt: now,
+          messageId,
+          subjectAngle: app.subjects.find((s) => s.text === app.subject)?.angle ?? "Custom",
+        },
         `Sent to ${app.toEmail}`,
       ),
     );

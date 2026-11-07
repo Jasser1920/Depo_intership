@@ -3,13 +3,15 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { DEFAULT_SETTINGS } from "./defaults";
-import type { Application, EnvStatus, Settings } from "./types";
+import type { Application, EnvStatus, Job, SearchRun, Settings } from "./types";
 
 // Simple JSON-file storage. It is a single-user local app, so this is enough
 // and keeps the project dependency-free (no database server, no native build).
 export const DATA_DIR = path.join(process.cwd(), "data");
 const APPS_FILE = path.join(DATA_DIR, "applications.json");
 const SETTINGS_FILE = path.join(DATA_DIR, "settings.json");
+const JOBS_FILE = path.join(DATA_DIR, "jobs.json");
+const RUNS_FILE = path.join(DATA_DIR, "runs.json");
 export const CV_FILE = path.join(DATA_DIR, "cv.pdf");
 
 function ensureDir() {
@@ -35,7 +37,7 @@ function writeJson(file: string, value: unknown) {
 
 export function getSettings(): Settings {
   const saved = readJson<Partial<Settings>>(SETTINGS_FILE, {});
-  return { ...DEFAULT_SETTINGS, ...saved };
+  return { ...DEFAULT_SETTINGS, ...saved, search: { ...DEFAULT_SETTINGS.search, ...saved.search } };
 }
 
 export function saveSettings(patch: Partial<Settings>): Settings {
@@ -53,6 +55,9 @@ export function getEnvStatus(): EnvStatus {
     cvUploaded: fs.existsSync(CV_FILE),
     claudeModel: process.env.CLAUDE_MODEL || "claude-opus-5-5",
     geminiModel: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+    hunter: Boolean(process.env.HUNTER_API_KEY),
+    jooble: Boolean(process.env.JOOBLE_API_KEY),
+    adzuna: Boolean(process.env.ADZUNA_APP_ID && process.env.ADZUNA_APP_KEY),
   };
 }
 
@@ -112,4 +117,39 @@ export function deleteApplication(id: string): boolean {
   const next = apps.filter((a) => a.id !== id);
   writeJson(APPS_FILE, next);
   return next.length !== apps.length;
+}
+
+// ---------- jobs (v2) ----------
+
+export function listJobs(): Job[] {
+  return readJson<Job[]>(JOBS_FILE, []);
+}
+
+export function saveJobs(jobs: Job[]) {
+  writeJson(JOBS_FILE, jobs);
+}
+
+export function getJob(id: string): Job | undefined {
+  return listJobs().find((j) => j.id === id);
+}
+
+export function updateJob(id: string, patch: Partial<Job>): Job | undefined {
+  const jobs = listJobs();
+  const i = jobs.findIndex((j) => j.id === id);
+  if (i === -1) return undefined;
+  jobs[i] = { ...jobs[i], ...patch, id: jobs[i].id };
+  saveJobs(jobs);
+  return jobs[i];
+}
+
+export function listRuns(): SearchRun[] {
+  return readJson<SearchRun[]>(RUNS_FILE, []);
+}
+
+export function addRun(run: SearchRun) {
+  writeJson(RUNS_FILE, [run, ...listRuns()].slice(0, 50));
+}
+
+export function updateRun(id: string, patch: Partial<SearchRun>) {
+  writeJson(RUNS_FILE, listRuns().map((r) => (r.id === id ? { ...r, ...patch } : r)));
 }

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { ContactFinder } from "@/components/ContactFinder";
 import { ErrorBox } from "@/components/ui";
 import { api } from "@/lib/client";
 import type { Application, EnvStatus, Provider, Settings } from "@/lib/types";
@@ -23,6 +24,20 @@ export default function NewApplication() {
   const [env, setEnv] = useState<EnvStatus | null>(null);
   const [busy, setBusy] = useState<"" | "fetch" | "write">("");
   const [error, setError] = useState("");
+  const [domain, setDomain] = useState("");
+
+  useEffect(() => {
+    // Prefill from links like /new?kind=spontaneous&company=Pleo&country=Denmark&domain=pleo.io
+    const q = new URLSearchParams(window.location.search);
+    if (q.get("kind") === "spontaneous") setKind("spontaneous");
+    if (q.get("company")) setCompany(q.get("company")!);
+    if (q.get("domain")) setDomain(q.get("domain")!);
+    const c = q.get("country");
+    if (c) {
+      if (COUNTRIES.includes(c)) setCountry(c);
+      else { setCountry("Other"); setOtherCountry(c); }
+    }
+  }, []);
 
   useEffect(() => {
     api<{ settings: Settings; env: EnvStatus }>("/api/settings").then((d) => {
@@ -125,6 +140,11 @@ export default function NewApplication() {
             <input id="cemail" type="email" className="field" placeholder="careers@company.com" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} />
           </div>
         </div>
+        <ContactFinder
+          key={domain}
+          defaultDomain={domain}
+          onPick={(email, name) => { setContactEmail(email); if (name) setContactName(name); }}
+        />
 
         <div>
           <label className="label" htmlFor="notes">Extra instructions for this letter (optional)</label>

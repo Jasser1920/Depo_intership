@@ -93,6 +93,8 @@ export default function Tracker() {
                       <ScoreBadge score={a.match.score} />
                       {a.visa.flag !== "ok" && <VisaBadge flag={a.visa.flag} />}
                       {needFollowUp(a) && <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">Follow up</span>}
+                      {(a.replies ?? []).some((r) => r.kind === "reply") && <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">📬 Reply</span>}
+                      {a.bounced && <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">Bounced</span>}
                     </div>
                     <select className="field py-1 text-xs" value={a.status} onChange={(e) => move(a, e.target.value as Status)} aria-label="Status">
                       {STATUSES.map((s) => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}

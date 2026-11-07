@@ -24,7 +24,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (!input.confirm) return fail("Sending requires explicit confirmation.");
     if (!app.sentAt) return fail("The original email hasn't been sent from this app.");
     if (!input.subject?.trim() || !input.body?.trim()) return fail("Subject and body can't be empty.");
-    await sendMail({
+    const messageId = await sendMail({
       to: app.toEmail,
       cc: app.cc,
       subject: input.subject,
@@ -37,7 +37,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return ok(
       updateApplication(
         id,
-        { followUps: [...app.followUps, { sentAt: now, subject: input.subject, body: input.body }] },
+        { followUps: [...app.followUps, { sentAt: now, subject: input.subject, body: input.body, messageId }] },
         "Follow-up sent",
       ),
     );
